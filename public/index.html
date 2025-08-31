@@ -1115,6 +1115,13 @@
                 return;
             }
 
+            // currentAnalysis 검증
+            if (!currentAnalysis) {
+                console.error('❌ 분석 결과가 없습니다');
+                alert('분석 결과를 먼저 확인해주세요!');
+                return;
+            }
+
             // AI 학습 진행 (조용히)
             Object.keys(feedbackData).forEach(category => {
                 const feedback = feedbackData[category];
@@ -1172,6 +1179,12 @@
         // 학습 데이터 추출 및 서버 전송 (백엔드 미연결시에도 안전)
         async function extractAndSendTrainingData() {
             try {
+                // 필수 데이터 검증
+                if (!currentAnalysis || !currentImageFile) {
+                    console.error('❌ 분석 데이터나 이미지 파일이 없습니다');
+                    return;
+                }
+
                 console.log('🔬 이미지 특징 추출 시작...');
                 const features = await extractImageFeatures(currentImageFile);
 
@@ -1179,19 +1192,19 @@
                     timestamp: new Date().toISOString(),
                     imageFeatures: features,
                     aiPredictions: {
-                        color: currentAnalysis.color,
-                        fit: currentAnalysis.fit,
-                        trend: currentAnalysis.trend,
-                        balance: currentAnalysis.balance,
-                        total: currentAnalysis.total
+                        color: currentAnalysis.color || 0,
+                        fit: currentAnalysis.fit || 0,
+                        trend: currentAnalysis.trend || 0,
+                        balance: currentAnalysis.balance || 0,
+                        total: currentAnalysis.total || 0
                     },
                     userFeedback: {
-                        color: feedbackData.color,
-                        fit: feedbackData.fit,
-                        trend: feedbackData.trend,
-                        balance: feedbackData.balance
+                        color: feedbackData.color || 'unknown',
+                        fit: feedbackData.fit || 'unknown',
+                        trend: feedbackData.trend || 'unknown',
+                        balance: feedbackData.balance || 'unknown'
                     },
-                    userRating: selectedRating,
+                    userRating: selectedRating || 0,
                     sessionId: generateSessionId()
                 };
 
