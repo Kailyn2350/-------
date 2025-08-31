@@ -1,0 +1,20 @@
+# Node.js
+server/node_modules/
+server/package-lock.json
+
+# Python
+ai/__pycache__/
+ai/.venv/
+ai/*.pyc
+
+# 모델 파일 (Render 무료 디스크는 영속X, 깃에 올릴 필요 없음)
+ai/models/
+
+# 환경 변수
+server/.env
+ai/.env
+
+# OS / IDE 불필요한 파일
+.DS_Store
+Thumbs.db
+*.log
