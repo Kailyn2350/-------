@@ -5,7 +5,10 @@
     <meta name="google-site-verification" content="eeFnMMTp0JIp4XCpBD_NPM7tFv1HATSZFh50F8E-Tlw" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 패션 분석기</title>
+    <title>AI 패션 분석기 | AI가 코디·스타일을 점수로 평가</title>
+    <meta name="description"
+        content="AI 패션 분석기: 패션 사진을 업로드하면 인공지능이 색상·핏·트렌드·밸런스를 분석해 점수를 매겨줍니다. AI 패션, AI 스타일 평가를 무료로 경험해 보세요.">
+    <link rel="canonical" href="https://websaiteu.onrender.com/">
     <style>
         * {
             margin: 0;
@@ -409,6 +412,14 @@
 
         <div class="main-content">
             <div class="upload-section" id="uploadSection">
+                <section style="margin:24px 0; color:#333; line-height:1.6">
+                    <h2 style="font-size:1.25rem; margin-bottom:8px">AI 패션 분석기가 무엇인가요?</h2>
+                    <p>
+                        이 서비스는 <strong>AI 패션</strong> 알고리즘으로 사용자의 코디 사진을 분석하고
+                        색상 조화·체형과 핏·트렌드 반영·전체 균형을 점수로 보여주는 <strong>AI 패션 분석기</strong>입니다.
+                        결과에 대한 피드백을 주면 모델이 점점 더 정확해집니다.
+                    </p>
+                </section>
                 <div class="upload-area" id="uploadArea">
                     <div class="upload-icon">📷</div>
                     <div class="upload-text">패션 사진을 업로드하세요</div>
@@ -1117,6 +1128,20 @@
         // 초기화
         initializeFeedbackButtons();
         initializeStarRating();
+    </script>
+
+    <script type="application/ld+json">
+        {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "AI 패션 분석기",
+        "url": "https://websaiteu.onrender.com/",
+        "applicationCategory": "Fashion",
+        "operatingSystem": "All",
+        "description": "AI가 코디와 스타일을 분석하고 점수를 매겨주는 웹서비스",
+        "inLanguage": "ko",
+        "featureList": ["AI 패션", "스타일 평가", "코디 점수", "색상 조화", "핏 분석", "트렌드 반영", "전체 균형"]
+        }
     </script>
 </body>
 
