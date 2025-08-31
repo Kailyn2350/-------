@@ -61,6 +61,40 @@ app.get('/api/training-stats', async (_req, res) => {
     res.json({ totalSamples, recentSamples });
 });
 
+// AI 예측 프록시 API
+app.post('/api/ai-predict', async (req, res) => {
+    try {
+        if (!AI_URL) {
+            return res.status(503).json({ 
+                success: false, 
+                error: 'AI 서버가 설정되지 않았습니다' 
+            });
+        }
+
+        // AI 서버로 예측 요청 전달
+        const response = await fetch(`${AI_URL}/predict`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(req.body)
+        });
+
+        if (response.ok) {
+            const prediction = await response.json();
+            res.json(prediction);
+        } else {
+            throw new Error(`AI 서버 응답 오류: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('AI 예측 요청 실패:', error);
+        res.status(503).json({ 
+            success: false, 
+            error: 'AI 서버 연결 실패' 
+        });
+    }
+});
+
 // server.js (triggerModelRetraining 내부 수정)
 async function triggerModelRetraining() {
     try {

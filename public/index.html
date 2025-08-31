@@ -632,18 +632,20 @@
                 const img = new Image();
 
                 img.onload = () => {
-                    // 작은 크기로 리사이즈 (용량 절약)
-                    canvas.width = 100;
-                    canvas.height = 100;
-                    ctx.drawImage(img, 0, 0, 100, 100);
+                    // 해상도 개선 (AI 정확도 향상)
+                    canvas.width = 224;
+                    canvas.height = 224;
+                    ctx.drawImage(img, 0, 0, 224, 224);
 
-                    const imageData = ctx.getImageData(0, 0, 100, 100);
+                    const imageData = ctx.getImageData(0, 0, 224, 224);
                     const features = {
                         colorHistogram: extractColorHistogram(imageData),
-                        dominantColors: extractDominantColors(imageData, 5), // 상위 5개 색상만
+                        dominantColors: extractDominantColors(imageData, 8), // 상위 8개 색상으로 증가
                         brightness: calculateBrightness(imageData),
                         contrast: calculateContrast(imageData),
-                        saturation: calculateSaturation(imageData)
+                        saturation: calculateSaturation(imageData),
+                        colorVariance: calculateColorVariance(imageData),
+                        edgeIntensity: calculateEdgeIntensity(imageData)
                     };
 
                     resolve(features);
@@ -741,6 +743,68 @@
             return Math.round((totalSat / count) * 100);
         }
 
+        function calculateColorVariance(imageData) {
+            const data = imageData.data;
+            let meanR = 0, meanG = 0, meanB = 0;
+            const pixelCount = data.length / 4;
+
+            // 평균 계산
+            for (let i = 0; i < data.length; i += 4) {
+                meanR += data[i];
+                meanG += data[i + 1];
+                meanB += data[i + 2];
+            }
+            meanR /= pixelCount;
+            meanG /= pixelCount;
+            meanB /= pixelCount;
+
+            // 분산 계산
+            let varianceR = 0, varianceG = 0, varianceB = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                varianceR += Math.pow(data[i] - meanR, 2);
+                varianceG += Math.pow(data[i + 1] - meanG, 2);
+                varianceB += Math.pow(data[i + 2] - meanB, 2);
+            }
+
+            const totalVariance = (varianceR + varianceG + varianceB) / (3 * pixelCount);
+            return Math.round(Math.sqrt(totalVariance));
+        }
+
+        function calculateEdgeIntensity(imageData) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            let edgeIntensity = 0;
+
+            // 간단한 Sobel 필터로 엣지 검출
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    const idx = (y * width + x) * 4;
+                    const pixel = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
+
+                    // 수평 gradient
+                    const gx = -data[((y - 1) * width + (x - 1)) * 4] 
+                              + data[((y - 1) * width + (x + 1)) * 4]
+                              - 2 * data[(y * width + (x - 1)) * 4] 
+                              + 2 * data[(y * width + (x + 1)) * 4]
+                              - data[((y + 1) * width + (x - 1)) * 4] 
+                              + data[((y + 1) * width + (x + 1)) * 4];
+
+                    // 수직 gradient
+                    const gy = -data[((y - 1) * width + (x - 1)) * 4] 
+                              - 2 * data[((y - 1) * width + x) * 4] 
+                              - data[((y - 1) * width + (x + 1)) * 4]
+                              + data[((y + 1) * width + (x - 1)) * 4] 
+                              + 2 * data[((y + 1) * width + x) * 4] 
+                              + data[((y + 1) * width + (x + 1)) * 4];
+
+                    edgeIntensity += Math.sqrt(gx * gx + gy * gy);
+                }
+            }
+
+            return Math.round(edgeIntensity / ((width - 2) * (height - 2)));
+        }
+
         let currentImageFile = null;
 
         const uploadArea = document.getElementById('uploadArea');
@@ -823,14 +887,52 @@
             }, 5500);
         }
 
-        function performAnalysis() {
-            // AI 학습 데이터 기반 점수 생성
-            currentAnalysis = generateScores();
+        async function performAnalysis() {
+            try {
+                // 실제 AI 서버에 이미지 특징 전송하여 예측 받기
+                const features = await extractImageFeatures(currentImageFile);
+                const aiPrediction = await getAIPrediction(features);
+                
+                if (aiPrediction && aiPrediction.success) {
+                    currentAnalysis = aiPrediction.predictions;
+                    console.log('🤖 실제 AI 모델 예측 사용:', currentAnalysis);
+                } else {
+                    // AI 서버 연결 실패시 백업 로직
+                    currentAnalysis = generateScores();
+                    console.log('⚠️ AI 서버 미연결 - 로컬 시뮬레이션 사용');
+                }
+            } catch (error) {
+                console.error('AI 예측 실패:', error);
+                currentAnalysis = generateScores();
+            }
 
             // 분석 횟수 증가 (조용히)
             aiLearningData.totalAnalyses++;
 
             displayResults(currentAnalysis);
+        }
+
+        // AI 서버에서 실제 예측 받는 함수
+        async function getAIPrediction(features) {
+            try {
+                const response = await fetch('/api/ai-predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ imageFeatures: features })
+                });
+
+                if (response.ok) {
+                    return await response.json();
+                } else {
+                    console.log('AI 서버 응답 오류:', response.status);
+                    return null;
+                }
+            } catch (error) {
+                console.log('AI 서버 연결 실패:', error);
+                return null;
+            }
         }
 
         function generateScores() {
