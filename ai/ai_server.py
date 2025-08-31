@@ -64,7 +64,10 @@ class FashionAI:
             
             # 주요 색상 (24) - 8개 색상 * 3(RGB)
             for color in img_features["dominantColors"][:8]:
-                feature_vector.extend([color["r"], color["g"], color["b"]])
+                if color and "r" in color and "g" in color and "b" in color:
+                    feature_vector.extend([color["r"], color["g"], color["b"]])
+                else:
+                    feature_vector.extend([0, 0, 0])  # Default values for null/invalid colors
             
             # 기본 특징들 (3)
             feature_vector.extend([

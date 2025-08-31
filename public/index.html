@@ -687,13 +687,20 @@
                 colorCounts[colorKey] = (colorCounts[colorKey] || 0) + 1;
             }
 
-            return Object.entries(colorCounts)
+            const dominantColors = Object.entries(colorCounts)
                 .sort(([, a], [, b]) => b - a)
                 .slice(0, count)
                 .map(([color, count]) => {
                     const [r, g, b] = color.split(',').map(Number);
                     return { r, g, b, count };
                 });
+
+            // Ensure we always return exactly the requested count of colors
+            while (dominantColors.length < count) {
+                dominantColors.push({ r: 0, g: 0, b: 0, count: 0 });
+            }
+
+            return dominantColors;
         }
 
         function calculateBrightness(imageData) {
