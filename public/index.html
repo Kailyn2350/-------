@@ -565,6 +565,50 @@
             overallAccuracy: 0.64
         };
 
+        // 🔹 전역 상태 (추가)
+        let feedbackData = {};
+        let selectedRating = 0;
+        let currentAnalysis = null;
+
+        // 🔹 초기화 함수 (추가)
+        function resetAnalysis() {
+            // 파일 입력 및 이미지 미리보기 초기화
+            const fileInput = document.getElementById('fileInput');
+            const previewImage = document.getElementById('previewImage');
+            const uploadSection = document.getElementById('uploadSection');
+            const previewSection = document.getElementById('previewSection');
+            const analyzingSection = document.getElementById('analyzingSection');
+            const resultsSection = document.getElementById('resultsSection');
+
+            // 파일/이미지 리셋
+            if (fileInput) fileInput.value = '';
+            if (previewImage) previewImage.src = '';
+
+            // 상태 리셋
+            feedbackData = {};
+            selectedRating = 0;
+            currentAnalysis = null;
+            window.currentImageFile = null; // 혹시 모를 잔여 참조 제거
+
+            // UI 표시 상태 되돌리기
+            if (resultsSection) resultsSection.style.display = 'none';
+            if (analyzingSection) analyzingSection.style.display = 'none';
+            if (previewSection) previewSection.style.display = 'none';
+            if (uploadSection) uploadSection.style.display = 'block';
+
+            // 버튼/별점 UI 초기화
+            document.querySelectorAll('.feedback-btn').forEach(btn => btn.classList.remove('selected'));
+            document.querySelectorAll('.star').forEach(star => star.classList.remove('selected'));
+
+            // 별점 이벤트 재바인딩(안전)
+            if (typeof initializeStarRating === 'function') {
+                initializeStarRating();
+            }
+
+            // 맨 위로 스크롤
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         // 이미지 특징 추출 함수들 추가
         async function extractImageFeatures(imageFile) {
             return new Promise((resolve) => {
